@@ -3,9 +3,9 @@
 
 
 
-    <div class="flex min-h-screen mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-1" style="min-height: calc(100vh - 64px)">
         <!-- Sidebar -->
-        <div class="w-[17%] bg-white p-4 border-r border-gray-300 ml-0">
+        <div class="w-[17%] bg-white p-4 border-r border-gray-300">
             <div class="mb-4">
                 <a href="/report" class="font-bold border-b-2 border-black w-full py-2">All Report</a>
             </div>
@@ -44,9 +44,9 @@
 
 
         <!-- Main Content Area -->
-        <div class="flex-1 p-6 bg-blue-200" id="main-content">
-            <h1 class="text-3xl font-bold mb-4">Main Content Area</h1>
-            <p>This is where the main content will go. You can place your reports, data, or any other content here.</p>
+        <div class="flex-1 bg-blue-200" id="main-content">
+            <h1 class="text-3xl font-bold mb-4 p-6">Main Content Area</h1>
+            <p class="p-6">This is where the main content will go.</p>
         </div>
 
 

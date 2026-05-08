@@ -30,11 +30,16 @@
         <table>
             <thead>
                 <tr>
-                    <th colspan="14" class="style2">AIRCRAFT OPERATION SUMMARY</th>
+                    <th colspan="14" class="style2" style="border-bottom: none;">AIRCRAFT OPERATION SUMMARY</th>
                 </tr>
                 <tr>
-                    <th colspan="14" class="style2">{{ $aircraftType }}</th>
+                    <th colspan="14" class="style2" style="border-top: none; border-bottom: none;">
+                        <img src="{{ public_path('images/plane.png') }}" style="height: 20px;">
+                        {{ $operator }}</th>
                 </tr>
+                <tr>
+                    <th colspan="14" class="style2" style="border-top: none;">{{ $aircraftType }}</th>
+                </tr>   
                 <tr>
                     {{-- <th></th> --}}
                     <th colspan="14">{{ $year-1 }}-{{ $year }}</th>

@@ -79,10 +79,14 @@ require __DIR__ . '/auth.php';
 
 
 /* Routes Modul pada Report */
+// Route::get('/report', function () {
+//     return view('report');
+// })
+//     ->middleware(['auth', 'verified'])->name('report');
+
 Route::get('/report', function () {
-    return view('report');
-})
-    ->middleware(['auth', 'verified'])->name('report');
+    return view('report.report');
+})->middleware(['auth', 'verified'])->name('report');
 
 Route::get('/get-aircraft-types', [ReportController::class, 'getAircraftTypes'])->name('get.aircraft.types');
 

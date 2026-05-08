@@ -14,4 +14,3 @@ class Report extends Model
 }
 
 
-// abu

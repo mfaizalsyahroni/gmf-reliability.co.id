@@ -22,24 +22,25 @@ class ReportController extends Controller
 
 
 
-    public function aosIndex()
-    {
-        $operators = TblMasterac::select('Operator')->distinct()->get();
+public function aosIndex(Request $request)
+{
+    $operators = TblMasterac::select('Operator')->distinct()->get();
 
-        // Ambil data untuk dropdown
-        $aircraftTypes = TblMasterac::select('ACType')->distinct()->get();
+    $aircraftTypes = TblMasterac::select('ACType')->distinct()->get();
 
-        // Ambil dan format data periode
-        $periods = TblMonthlyfhfc::select('MonthEval')->distinct()->orderByDesc('MonthEval')->get()->map(function ($item) {
-            return [
-                'formatted' => Carbon::parse($item->MonthEval)->format('Y-m'), // Format menjadi yyyy-mm
-                'original' => $item->MonthEval
-            ];
-        });
+    $periods = TblMonthlyfhfc::select('MonthEval')->distinct()->orderByDesc('MonthEval')->get()->map(function ($item) {
+        return [
+            'formatted' => Carbon::parse($item->MonthEval)->format('Y-m'),
+            'original' => $item->MonthEval
+        ];
+    });
 
+    if ($request->ajax()) { 
         return view('report.aos-content', compact('aircraftTypes', 'operators', 'periods'));
     }
 
+    return view('report.aos-content', compact('aircraftTypes', 'operators', 'periods'));
+}
 
     public function getAircraftTypes(Request $request)
     {
@@ -68,6 +69,7 @@ class ReportController extends Controller
 
         $aircraftType = $request->aircraft_type;
         $period = $request->period; // Format: YYYY-MM
+        $operator = $request->operator; 
 
         // Initialize an array to hold report data for each month
         $reportData = [];
@@ -245,6 +247,7 @@ class ReportController extends Controller
             'reportData',
             'period',
             'aircraftType',
+            'operator',
             'month',
             'year',
             'avgFlightHoursPerTakeOffTotal',
@@ -270,6 +273,7 @@ class ReportController extends Controller
         // Validasi input
         $request->validate([
             'period' => 'required',
+            'operator' => 'required',
             'aircraft_type' => 'required',
         ]);
 
@@ -277,6 +281,7 @@ class ReportController extends Controller
         // Ambil data yang sama seperti di metode aosStore
         $aircraftType = $request->aircraft_type;
         $period = $request->period;
+        $operator = $request->operator;
 
         // ... (logika untuk menghitung reportData)
         // Initialize an array to hold report data for each month
@@ -451,7 +456,7 @@ class ReportController extends Controller
         $avgAverageDuration = $this->convertDecimalToHoursMinutes($averageAverageDuration);
 
         // Kembalikan PDF
-        $pdf = PDF::loadView('pdf.aos-pdf', compact('reportData', 'period', 'aircraftType', 'month', 'year', 
+        $pdf = PDF::loadView('pdf.aos-pdf', compact('reportData', 'period', 'operator', 'aircraftType', 'month', 'year', 
             'avgFlightHoursPerTakeOffTotal', 'avgRevenueFlightHoursPerTakeOff', 
             'avgDailyUtilizationFlyingHoursTotal', 'avgRevenueDailyUtilizationFlyingHoursTotal',
             'avgTotalDuration', 'avgAverageDuration'));
@@ -681,21 +686,25 @@ class ReportController extends Controller
 
 
     //Controller Button Pilot Report
-    public function pilotIndex()
-    { // Button Filter Pilot Report
-        $aircraftTypes = TblPirepSwift::select('ACTYPE')->distinct()->whereNotNull('ACTYPE')->where('ACTYPE', '!=', '')->where('ACTYPE', '!=', 'default')->get();
+public function pilotIndex(Request $request)
+{
+    $aircraftTypes = TblPirepSwift::select('ACTYPE')->distinct()->whereNotNull('ACTYPE')->where('ACTYPE', '!=', '')->where('ACTYPE', '!=', 'default')->get();
 
-        $operators = TblMasterac::select('Operator')->distinct()->whereNotNull('Operator')->where('Operator', '!=', '')->get();
+    $operators = TblMasterac::select('Operator')->distinct()->whereNotNull('Operator')->where('Operator', '!=', '')->get();
 
-        $periods = TblMonthlyfhfc::select('MonthEval')->distinct()->orderByDesc('MonthEval')->get()->map(function ($item) {
-            return [
-                'formatted' => Carbon::parse($item->MonthEval)->format('Y-m'), // Format menjadi yyyy-mm
-                'original' => $item->MonthEval
-            ];
-        });
+    $periods = TblMonthlyfhfc::select('MonthEval')->distinct()->orderByDesc('MonthEval')->get()->map(function ($item) {
+        return [
+            'formatted' => Carbon::parse($item->MonthEval)->format('Y-m'),
+            'original' => $item->MonthEval
+        ];
+    });
 
+    if ($request->ajax()) {
         return view('report.pilot-content', compact('aircraftTypes', 'periods', 'operators'));
     }
+
+    return view('report.pilot-content', compact('aircraftTypes', 'periods', 'operators'));
+}
 
     public function pilotStore(Request $request)
     {
