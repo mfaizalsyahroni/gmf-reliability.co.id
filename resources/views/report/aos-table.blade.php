@@ -1,7 +1,3 @@
-{{-- aos-result.blade.php --}}
-<x-app-layout>
-
-
     <style>
         .aos-table th,
         .aos-table td {
@@ -15,38 +11,11 @@
         }
     </style>
 
-    <div class="mx-auto py-4 px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center">
-            <p class="py-2">Data Aircraft Operation Summary Type: {{ $operator }} {{ $aircraftType }} pada
-                {{ $month }}-{{ $year }}</p>
-            <div class="flex space-x-1">
-                <form action="{{ route('report.aos.export.pdf') }}" method="POST">
-                    @csrf
-                    <input type="hidden" name="period" value="{{ $period }}">
-                    <input type="hidden" name="operator" value="{{ $operator }}">
-                    <input type="hidden" name="aircraft_type" value="{{ $aircraftType }}">
-                    <button type="submit"
-                        class="block-rounded-md bg-white border border-gray-400 text-black px-3 py-1 cursor-pointer flex flex-col items-center">
-                        <img src="{{ asset('images/pdf.png') }}" style="width: 16px; height: 16px; margin-bottom: 2px;">
-                        PDF
-                    </button>
-                </form>
-                <form action="{{ route('report.aos.export.excel') }}" method="post">
-                    @csrf
-                    <input type="hidden" name="period" value="{{ $period ?? '' }}">
-                    <input type="hidden" name="operator" value="{{ $operator ?? '' }}">
-                    <input type="hidden" name="aircraft_type" value="{{ $aircraftType ?? '' }}">
-                    <button type="submit"
-                        class="block-rounded-md bg-white border border-gray-400 text-black px-2 py-1 cursor-pointer flex flex-col items-center">
-                        <img src="{{ asset('images/excel.png') }}" style="width: 16px; height: 16px; margin-bottom: 2px;">
-                        Excel
-                    </button>
-                </form>
-            </div>
-        </div>
+<div class="mx-auto py-4 px-4">
+    <p class="py-2">Data Aircraft Operation Summary  {{ $operator }}  {{ $aircraftType }}  {{ $month }}-{{ $year }}</p>
 
-        <div class="mt-3 flow-root overflow-x-auto">
-            <div class="aos-table">
+    <div class="mt-3 flow-root overflow-x-auto">
+        <div class="aos-table">
                 <x-table.index>
                     <x-table.thead>
                         <tr>
@@ -327,8 +296,6 @@
 
                     </x-table.tbody>
                 </x-table.index>
-            </div>
         </div>
     </div>
-
-</x-app-layout>
+</div>

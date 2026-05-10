@@ -67,19 +67,20 @@
                         class="flex items-center text-blue-500 text-nonwrap hover:text-blue-900 sidebar-item"
                         style="font-size: 14px"><span class="mr-2 text-xs">✈</span> Cabin Reliability Report</a></li>
             </ul>
+
         </div>
 
 
         <!-- Main Content Area -->
         <div class="flex-1 bg-blue-200" id="main-content">
-            <h1 class="text-3xl font-bold mb-4 p-6">Main Content Area</h1>
-            <p class="p-6">This is where the main content will go.</p>
+                <h1 class="text-3xl font-bold mb-4 p-6">Main Content Area</h1>
+                <p class="p-6">This is where the main content will go.</p>
         </div>
 
 
 
-    </div>
-    <script src="{{ asset('js/report.js') }}"></script> <!-- Script js terletak di public/js/report.js -->
+        </div>
+        <script src="{{ asset('js/report.js') }}"></script> <!-- Script js terletak di public/js/report.js -->
 
 
 </x-app-layout>

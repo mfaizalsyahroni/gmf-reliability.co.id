@@ -20,7 +20,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
+        integrity="sha512-S...HASH..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 
     <!-- Vite -->
@@ -44,7 +45,7 @@
         <main class="flex-1">
             {{ $slot }}
         </main>
-        <script>
+        {{-- <script>
             document.addEventListener('DOMContentLoaded', function() {
                 console.log('alert');
                 document.getElementById('operator-dropdown').addEventListener('change', function() {
@@ -77,15 +78,15 @@
                     }
                 });
             });
-        </script>
+        </script> --}}
 
     </div>
 </body>
-<script>
+{{-- <script>
     document.addEventListener('DOMContentLoaded', function() {
         console.log('loaded')
     })
-</script>
+</script> --}}
 
 
 </html>

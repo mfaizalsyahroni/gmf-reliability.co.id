@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
-use App\Exports\AOSExport; 
+use App\Exports\AOSExport;
 use Maatwebsite\Excel\Facades\Excel;
 
 
@@ -22,25 +22,25 @@ class ReportController extends Controller
 
 
 
-public function aosIndex(Request $request)
-{
-    $operators = TblMasterac::select('Operator')->distinct()->get();
+    public function aosIndex(Request $request)
+    {
+        $operators = TblMasterac::select('Operator')->distinct()->get();
 
-    $aircraftTypes = TblMasterac::select('ACType')->distinct()->get();
+        $aircraftTypes = TblMasterac::select('ACType')->distinct()->get();
 
-    $periods = TblMonthlyfhfc::select('MonthEval')->distinct()->orderByDesc('MonthEval')->get()->map(function ($item) {
-        return [
-            'formatted' => Carbon::parse($item->MonthEval)->format('Y-m'),
-            'original' => $item->MonthEval
-        ];
-    });
+        $periods = TblMonthlyfhfc::select('MonthEval')->distinct()->orderByDesc('MonthEval')->get()->map(function ($item) {
+            return [
+                'formatted' => Carbon::parse($item->MonthEval)->format('Y-m'),
+                'original' => $item->MonthEval
+            ];
+        });
 
-    if ($request->ajax()) { 
+        if ($request->ajax()) {
+            return view('report.aos-content', compact('aircraftTypes', 'operators', 'periods'));
+        }
+
         return view('report.aos-content', compact('aircraftTypes', 'operators', 'periods'));
     }
-
-    return view('report.aos-content', compact('aircraftTypes', 'operators', 'periods'));
-}
 
     public function getAircraftTypes(Request $request)
     {
@@ -64,12 +64,14 @@ public function aosIndex(Request $request)
         // Validate input
         $request->validate([
             'period' => 'required',
+            'operator' => 'required',
             'aircraft_type' => 'required',
+
         ]);
 
         $aircraftType = $request->aircraft_type;
         $period = $request->period; // Format: YYYY-MM
-        $operator = $request->operator; 
+        $operator = $request->input('operator');
 
         // Initialize an array to hold report data for each month
         $reportData = [];
@@ -233,7 +235,7 @@ public function aosIndex(Request $request)
         $averageDailyUtilizationFlyingHoursTotal = $totalDailyUtilizationFlyingHoursTotal / 12;
         $avgDailyUtilizationFlyingHoursTotal = $this->convertDecimalToHoursMinutes($averageDailyUtilizationFlyingHoursTotal);
 
-        $averageRevenueDailyUtilizationFlyingHoursTotal =  $totalRevenueDailyUtilizationFlyingHoursTotal / 12;
+        $averageRevenueDailyUtilizationFlyingHoursTotal = $totalRevenueDailyUtilizationFlyingHoursTotal / 12;
         $avgRevenueDailyUtilizationFlyingHoursTotal = $this->convertDecimalToHoursMinutes($averageRevenueDailyUtilizationFlyingHoursTotal);
 
         $averageTotalDuration = $totalTotalDuration;
@@ -242,8 +244,18 @@ public function aosIndex(Request $request)
         $averageAverageDuration = $totalAverageDuration / 12;
         $avgAverageDuration = $this->convertDecimalToHoursMinutes($averageAverageDuration);
 
-        // Kembalikan view dengan data laporan
-        return view('report.aos-result', compact(
+        $operators     = TblMasterac::select('Operator')->distinct()->get();
+        $aircraftTypes = TblMasterac::select('ACType')->distinct()->get();
+        $periods       = TblMonthlyfhfc::select('MonthEval')->distinct()->orderByDesc('MonthEval')->get()
+                            ->map(fn($i) => [
+                                'formatted' => Carbon::parse($i->MonthEval)->format('Y-m'),
+                                'original'  => $i->MonthEval
+                            ]);
+
+
+
+        // return view('report.aos-result', compact(
+        return view('report.aos-content', compact(
             'reportData',
             'period',
             'aircraftType',
@@ -255,7 +267,10 @@ public function aosIndex(Request $request)
             'avgDailyUtilizationFlyingHoursTotal',
             'avgRevenueDailyUtilizationFlyingHoursTotal',
             'avgTotalDuration',
-            'avgAverageDuration'
+            'avgAverageDuration',
+            'operators',
+            'aircraftTypes',
+            'periods'
         ));
     }
 
@@ -269,7 +284,8 @@ public function aosIndex(Request $request)
     }
 
     // EXPORT AOS TO PDF FORMAT
-    public function aosPdf(Request $request){
+    public function aosPdf(Request $request)
+    {
         // Validasi input
         $request->validate([
             'period' => 'required',
@@ -290,8 +306,8 @@ public function aosIndex(Request $request)
         $totalRevenueFlightHoursPerTakeOff = 0;
         $totalDailyUtilizationFlyingHoursTotal = 0;
         $totalRevenueDailyUtilizationFlyingHoursTotal = 0;
-        $totalTotalDuration=0;
-        $totalAverageDuration=0;
+        $totalTotalDuration = 0;
+        $totalAverageDuration = 0;
 
         // Loop through the last 12 months
         for ($i = 11; $i >= 0; $i--) {
@@ -399,7 +415,7 @@ public function aosIndex(Request $request)
                 ->count();
 
             // 18. Dispatch Reliability (%)
-            $dispatchReliability = $revenueTakeOff > 0 ? 
+            $dispatchReliability = $revenueTakeOff > 0 ?
                 (($revenueTakeOff - $technicalDelayTotal - $technicalCancellationTotal) / $revenueTakeOff) * 100 : 0;
 
             // Store the metrics for the current month in the report data array
@@ -446,8 +462,8 @@ public function aosIndex(Request $request)
         $averageDailyUtilizationFlyingHoursTotal = $totalDailyUtilizationFlyingHoursTotal / 12;
         $avgDailyUtilizationFlyingHoursTotal = $this->convertDecimalToHoursMinutes($averageDailyUtilizationFlyingHoursTotal);
 
-        $averageRevenueDailyUtilizationFlyingHoursTotal =  $totalRevenueDailyUtilizationFlyingHoursTotal / 12;
-        $avgRevenueDailyUtilizationFlyingHoursTotal = $this->convertDecimalToHoursMinutes( $averageRevenueDailyUtilizationFlyingHoursTotal);
+        $averageRevenueDailyUtilizationFlyingHoursTotal = $totalRevenueDailyUtilizationFlyingHoursTotal / 12;
+        $avgRevenueDailyUtilizationFlyingHoursTotal = $this->convertDecimalToHoursMinutes($averageRevenueDailyUtilizationFlyingHoursTotal);
 
         $averageTotalDuration = $totalTotalDuration / 12;
         $avgTotalDuration = $this->convertDecimalToHoursMinutes($averageTotalDuration);
@@ -456,45 +472,55 @@ public function aosIndex(Request $request)
         $avgAverageDuration = $this->convertDecimalToHoursMinutes($averageAverageDuration);
 
         // Kembalikan PDF
-        $pdf = PDF::loadView('pdf.aos-pdf', compact('reportData', 'period', 'operator', 'aircraftType', 'month', 'year', 
-            'avgFlightHoursPerTakeOffTotal', 'avgRevenueFlightHoursPerTakeOff', 
-            'avgDailyUtilizationFlyingHoursTotal', 'avgRevenueDailyUtilizationFlyingHoursTotal',
-            'avgTotalDuration', 'avgAverageDuration'));
+        $pdf = PDF::loadView('pdf.aos-pdf', compact(
+            'reportData',
+            'period',
+            'operator',
+            'aircraftType',
+            'month',
+            'year',
+            'avgFlightHoursPerTakeOffTotal',
+            'avgRevenueFlightHoursPerTakeOff',
+            'avgDailyUtilizationFlyingHoursTotal',
+            'avgRevenueDailyUtilizationFlyingHoursTotal',
+            'avgTotalDuration',
+            'avgAverageDuration'
+        ));
 
         $pdf->setPaper('A4', 'landscape');
 
-        return $pdf->download('AOS-Report-' . $year.'-'.$month . '.pdf');
+        return $pdf->download('AOS-Report-' . $year . '-' . $month . '.pdf');
     }
 
 
-//     public function exportExcel(Request $request)
+    //     public function exportExcel(Request $request)
 //     {
 //         // Validasi input
 //         $request->validate([
 //             'period' => 'required|date_format:Y-m',
 //             'aircraft_type' => 'required|string',
 //         ]);
-    
-//         $aircraftType = $request->aircraft_type;
-//         $period = $request->period; // Format: YYYY-MM
-    
-//         // Ambil data laporan
-//         $reportData = $this->getReportData($period, $aircraftType, $request);
-    
-//         logger($reportData);
 
-//         if (empty($reportData)) {
+    //         $aircraftType = $request->aircraft_type;
+//         $period = $request->period; // Format: YYYY-MM
+
+    //         // Ambil data laporan
+//         $reportData = $this->getReportData($period, $aircraftType, $request);
+
+    //         logger($reportData);
+
+    //         if (empty($reportData)) {
 //             return response()->json(['message' => 'No data found for the specified period and aircraft type.'], 404);
 //         }
-    
-//         // Pastikan reportData adalah array dan konversi ke Collection
+
+    //         // Pastikan reportData adalah array dan konversi ke Collection
 //         $reportDataCollection = collect($reportData);
 
-//     // Buat dan kembalikan file Excel
+    //     // Buat dan kembalikan file Excel
 //     return Excel::download(new AOSExport($reportDataCollection, $aircraftType, date('Y', strtotime($period))), 'AOS_Report_' . $period . '.xlsx');
 // }
 
-//     private function getReportData($period, $aircraftType, $request)
+    //     private function getReportData($period, $aircraftType, $request)
 //     {
 //         // // Validasi input
 //         // $request->validate([
@@ -503,11 +529,11 @@ public function aosIndex(Request $request)
 //         // ]);
 
 
-//         // // Ambil data yang sama seperti di metode aosStore
+    //         // // Ambil data yang sama seperti di metode aosStore
 //         // $aircraftType = $request->aircraft_type;
 //         // $period = $request->period;
 
-//         // ... (logika untuk menghitung reportData)
+    //         // ... (logika untuk menghitung reportData)
 //         // Initialize an array to hold report data for each month
 //         $reportData = [];
 //         $totalFlightHoursPerTakeOffTotal = 0;
@@ -517,82 +543,82 @@ public function aosIndex(Request $request)
 //         $totalTotalDuration=0;
 //         $totalAverageDuration=0;
 
-//         // Loop through the last 12 months
+    //         // Loop through the last 12 months
 //         for ($i = 11; $i >= 0; $i--) {
 //             $currentPeriod = \Carbon\Carbon::parse($period)->subMonth($i)->format('Y-m');
 //             $month = date('m', strtotime($currentPeriod));
 //             $year = date('Y', strtotime($currentPeriod));
 
-//             // 1. A/C In Fleet
+    //             // 1. A/C In Fleet
 //             $acInFleet = TblMasterac::where('Active', '1')
 //                 ->where('ACType', $aircraftType)
 //                 ->count();
 
-//             // 2. A/C Days In Service
+    //             // 2. A/C Days In Service
 //             $daysInService = TblMonthlyfhfc::where('Actype', $aircraftType)
 //                 ->whereMonth('MonthEval', $month)
 //                 ->whereYear('MonthEval', $year)
 //                 ->sum('AvaiDays');
 
-//             // Calculate the number of days in the month
+    //             // Calculate the number of days in the month
 //             $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
 
-//             // A/C in Service
+    //             // A/C in Service
 //             $acInService = $daysInMonth > 0 ? $daysInService / $daysInMonth : 0;
 
-//             // 3. Flying Hours - Total
+    //             // 3. Flying Hours - Total
 //             $flyingHoursTotal = TblMonthlyfhfc::where('Actype', $aircraftType)
 //                 ->whereMonth('MonthEval', $month)
 //                 ->whereYear('MonthEval', $year)
 //                 ->selectRaw('SUM(RevFHHours + (RevFHMin / 60) + NoRevFHHours + (NoRevFHMin / 60)) as total')
 //                 ->first()->total;
 
-//             // 4. Revenue Flying Hours
+    //             // 4. Revenue Flying Hours
 //             $revenueFlyingHours = TblMonthlyfhfc::where('Actype', $aircraftType)
 //                 ->whereMonth('MonthEval', $month)
 //                 ->whereYear('MonthEval', $year)
 //                 ->selectRaw('SUM(RevFHHours + (RevFHMin / 60)) as revenue')
 //                 ->first()->revenue;
 
-//             // 5. Take Off - Total
+    //             // 5. Take Off - Total
 //             $takeOffTotal = TblMonthlyfhfc::where('Actype', $aircraftType)
 //                 ->whereMonth('MonthEval', $month)
 //                 ->whereYear('MonthEval', $year)
 //                 ->selectRaw('SUM(RevFC + NoRevFC) as total')
 //                 ->first()->total;
 
-//             // 6. Revenue Take Off
+    //             // 6. Revenue Take Off
 //             $revenueTakeOff = TblMonthlyfhfc::where('Actype', $aircraftType)
 //                 ->whereMonth('MonthEval', $month)
 //                 ->whereYear('MonthEval', $year)
 //                 ->sum('RevFC');
 
-//             // 7. Flight Hours per Take Off - Total
+    //             // 7. Flight Hours per Take Off - Total
 //             $flightHoursPerTakeOffTotal = $takeOffTotal > 0 ? $flyingHoursTotal / $takeOffTotal : 0;
 
-//             // 8. Revenue Flight Hours per Take Off
+    //             // 8. Revenue Flight Hours per Take Off
 //             $revenueFlightHoursPerTakeOff = $revenueTakeOff > 0 ? $revenueFlyingHours / $revenueTakeOff : 0;
 
-//             // 9. Daily Utilization - Flying Hours Total
+    //             // 9. Daily Utilization - Flying Hours Total
 //             $dailyUtilizationFlyingHoursTotal = $daysInService > 0 ? $flyingHoursTotal / $daysInService : 0;
 
-//             // 10. Revenue Daily Utilization - Flying Hours Total
+    //             // 10. Revenue Daily Utilization - Flying Hours Total
 //             $revenueDailyUtilizationFlyingHoursTotal = $daysInService > 0 ? $revenueFlyingHours / $daysInService : 0;
 
-//             // 11. Daily Utilization - Take Off Total
+    //             // 11. Daily Utilization - Take Off Total
 //             $dailyUtilizationTakeOffTotal = $daysInService > 0 ? $takeOffTotal / $daysInService : 0;
 
-//             // 12. Revenue Daily Utilization - Take Off Total
+    //             // 12. Revenue Daily Utilization - Take Off Total
 //             $revenueDailyUtilizationTakeOffTotal = $daysInService > 0 ? $revenueTakeOff / $daysInService : 0;
 
-//             // 13. Technical Delay - Total
+    //             // 13. Technical Delay - Total
 //             $technicalDelayTotal = Mcdrnew::where('ACType', $aircraftType)
 //                 ->whereMonth('DateEvent', '=', $month)
 //                 ->whereYear('DateEvent', '=', $year)
 //                 ->where('DCP', 'LIKE', '%D%')
 //                 ->count();
 
-//             // 14. Total Duration
+    //             // 14. Total Duration
 //             $totalDuration = Mcdrnew::where('ACType', $aircraftType)
 //                 ->whereMonth('DateEvent', '=', $month)
 //                 ->whereYear('DateEvent', '=', $year)
@@ -600,33 +626,33 @@ public function aosIndex(Request $request)
 //                 ->selectRaw('SUM(HoursTek + (MinTek / 60)) as total_duration')
 //                 ->first()->total_duration;
 
-//             // 15. Average Duration
+    //             // 15. Average Duration
 //             $averageDuration = $technicalDelayTotal > 0 ? $totalDuration / $technicalDelayTotal : 0;
 
-//             // 16. Rate / 100 Take Off
+    //             // 16. Rate / 100 Take Off
 //             $ratePer100TakeOff = $revenueTakeOff > 0 ? ($technicalDelayTotal * 100) / $revenueTakeOff : 0;
 
-//             // Technical Incident - Total
+    //             // Technical Incident - Total
 //             $technicalIncidentTotal = TblSdr::where('ACType', $aircraftType)
 //                 ->whereMonth('DateOccur', '=', $month)
 //                 ->whereYear('DateOccur', '=', $year)
 //                 ->count();
 
-//             // Technical Incident Rate /100 FC
+    //             // Technical Incident Rate /100 FC
 //             $technicalIncidentRate = $revenueTakeOff > 0 ? ($technicalIncidentTotal * 100) / $revenueTakeOff : 0;
 
-//             // 17. Technical Cancellation - Total
+    //             // 17. Technical Cancellation - Total
 //             $technicalCancellationTotal = Mcdrnew::where('ACType', $aircraftType)
 //                 ->whereMonth('DateEvent', '=', $month)
 //                 ->whereYear('DateEvent', '=', $year)
 //                 ->where('DCP', 'LIKE', '%C%')
 //                 ->count();
 
-//             // 18. Dispatch Reliability (%)
+    //             // 18. Dispatch Reliability (%)
 //             $dispatchReliability = $revenueTakeOff > 0 ? 
 //                 (($revenueTakeOff - $technicalDelayTotal - $technicalCancellationTotal) / $revenueTakeOff) * 100 : 0;
 
-//             // Store the metrics for the current month in the report data array
+    //             // Store the metrics for the current month in the report data array
 //             $reportData[$currentPeriod] = [
 //                 'acInFleet' => $acInFleet,
 //                 'acInService' => $acInService,
@@ -651,7 +677,7 @@ public function aosIndex(Request $request)
 //                 'dispatchReliability' => $dispatchReliability,
 //             ];
 
-//             // Mengonversi ke format desimal untuk penjumlahan
+    //             // Mengonversi ke format desimal untuk penjumlahan
 //             $totalFlightHoursPerTakeOffTotal += $flightHoursPerTakeOffTotal;
 //             $totalRevenueFlightHoursPerTakeOff += $revenueFlightHoursPerTakeOff;
 //             $totalDailyUtilizationFlyingHoursTotal += $dailyUtilizationFlyingHoursTotal;
@@ -660,51 +686,51 @@ public function aosIndex(Request $request)
 //             $totalAverageDuration += $averageDuration;
 //         }
 
-//         // Menghitung rata-rata 12 bulan and konversi ke format (HH:MM)
+    //         // Menghitung rata-rata 12 bulan and konversi ke format (HH:MM)
 //         $averageFlightHoursPerTakeOffTotal = $totalFlightHoursPerTakeOffTotal / 12;
 //         $avgFlightHoursPerTakeOffTotal = $this->convertDecimalToHoursMinutes($averageFlightHoursPerTakeOffTotal);
 
-//         $averageRevenueFlightHoursPerTakeOff = $totalRevenueFlightHoursPerTakeOff / 12;
+    //         $averageRevenueFlightHoursPerTakeOff = $totalRevenueFlightHoursPerTakeOff / 12;
 //         $avgRevenueFlightHoursPerTakeOff = $this->convertDecimalToHoursMinutes($averageRevenueFlightHoursPerTakeOff);
 
-//         $averageDailyUtilizationFlyingHoursTotal = $totalDailyUtilizationFlyingHoursTotal / 12;
+    //         $averageDailyUtilizationFlyingHoursTotal = $totalDailyUtilizationFlyingHoursTotal / 12;
 //         $avgDailyUtilizationFlyingHoursTotal = $this->convertDecimalToHoursMinutes($averageDailyUtilizationFlyingHoursTotal);
 
-//         $averageRevenueDailyUtilizationFlyingHoursTotal =  $totalRevenueDailyUtilizationFlyingHoursTotal / 12;
+    //         $averageRevenueDailyUtilizationFlyingHoursTotal =  $totalRevenueDailyUtilizationFlyingHoursTotal / 12;
 //         $avgRevenueDailyUtilizationFlyingHoursTotal = $this->convertDecimalToHoursMinutes( $averageRevenueDailyUtilizationFlyingHoursTotal);
 
-//         $averageTotalDuration = $totalTotalDuration / 12;
+    //         $averageTotalDuration = $totalTotalDuration / 12;
 //         $avgTotalDuration = $this->convertDecimalToHoursMinutes($averageTotalDuration);
 
-//         $averageAverageDuration = $totalAverageDuration / 12;
+    //         $averageAverageDuration = $totalAverageDuration / 12;
 //         $avgAverageDuration = $this->convertDecimalToHoursMinutes($averageAverageDuration);
 
-//         // Pastikan Anda mengembalikan $reportData di akhir fungsi
+    //         // Pastikan Anda mengembalikan $reportData di akhir fungsi
 //     return $reportData; // Pastikan ini ada
 // }
-    
+
 
 
     //Controller Button Pilot Report
-public function pilotIndex(Request $request)
-{
-    $aircraftTypes = TblPirepSwift::select('ACTYPE')->distinct()->whereNotNull('ACTYPE')->where('ACTYPE', '!=', '')->where('ACTYPE', '!=', 'default')->get();
+    public function pilotIndex(Request $request)
+    {
+        $aircraftTypes = TblPirepSwift::select('ACTYPE')->distinct()->whereNotNull('ACTYPE')->where('ACTYPE', '!=', '')->where('ACTYPE', '!=', 'default')->get();
 
-    $operators = TblMasterac::select('Operator')->distinct()->whereNotNull('Operator')->where('Operator', '!=', '')->get();
+        $operators = TblMasterac::select('Operator')->distinct()->whereNotNull('Operator')->where('Operator', '!=', '')->get();
 
-    $periods = TblMonthlyfhfc::select('MonthEval')->distinct()->orderByDesc('MonthEval')->get()->map(function ($item) {
-        return [
-            'formatted' => Carbon::parse($item->MonthEval)->format('Y-m'),
-            'original' => $item->MonthEval
-        ];
-    });
+        $periods = TblMonthlyfhfc::select('MonthEval')->distinct()->orderByDesc('MonthEval')->get()->map(function ($item) {
+            return [
+                'formatted' => Carbon::parse($item->MonthEval)->format('Y-m'),
+                'original' => $item->MonthEval
+            ];
+        });
 
-    if ($request->ajax()) {
+        if ($request->ajax()) {
+            return view('report.pilot-content', compact('aircraftTypes', 'periods', 'operators'));
+        }
+
         return view('report.pilot-content', compact('aircraftTypes', 'periods', 'operators'));
     }
-
-    return view('report.pilot-content', compact('aircraftTypes', 'periods', 'operators'));
-}
 
     public function pilotStore(Request $request)
     {

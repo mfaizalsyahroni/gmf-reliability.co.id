@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AOSController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
@@ -84,19 +85,20 @@ require __DIR__ . '/auth.php';
 // })
 //     ->middleware(['auth', 'verified'])->name('report');
 
+// Navbar report
 Route::get('/report', function () {
     return view('report.report');
 })->middleware(['auth', 'verified'])->name('report');
 
-Route::get('/get-aircraft-types', [ReportController::class, 'getAircraftTypes'])->name('get.aircraft.types');
+Route::get('/get-aircraft-types', [AOSController::class, 'getAircraftTypes'])->name('get.aircraft.types');
 
-Route::get('/report/aos', [ReportController::class, 'aosIndex']) // Aircraft Operation Summary - Button Filter
-    ->name('report.aos.index')->middleware(['auth', 'verified']);
+Route::get('/report/aos', [AOSController::class, 'aosIndex']) // Aircraft Operation Summary - Button Filter
+    ->name('report.aos.index');
 
-Route::post('/report/aos', [ReportController::class, 'aosStore']) // Aircraft Operation Summary - Display Datas
-    ->name('report.aos.store')->middleware(['auth', 'verified']);
+Route::post('/report/aos', [AOSController::class, 'aosStore']) // Aircraft Operation Summary - Display Datas
+    ->name('report.aos.store');
 
-Route::post('/report/aos/pdf', [ReportController::class, 'aosPdf'])
+Route::post('/report/aos/pdf', [AOSController::class, 'aosPdf'])
     ->name('report.aos.export.pdf')->middleware(['auth', 'verified']);
 
 Route::post('/report/aos/export/excel', [ExcelAosController::class, 'exportExcel'])
