@@ -11,10 +11,10 @@
         }
     </style>
 
-<div class="mx-auto py-4 px-4">
-    <p class="py-2">Data Aircraft Operation Summary  {{ $operator }}  {{ $aircraftType }}  {{ $month }}-{{ $year }}</p>
+<div class="table-responsive">
+    <p class="text-center">Data Aircraft Operation Summary  {{ $operator }}  {{ $aircraftType }}  {{ $month }}-{{ $year }}</p>
 
-    <div class="mt-3 flow-root overflow-x-auto">
+    <div class="flow-root">
         <div class="aos-table">
                 <x-table.index>
                     <x-table.thead>

@@ -1,180 +1,120 @@
-
-// report.js — Script untuk Sidebar & Form AJAX
-
 document.addEventListener('DOMContentLoaded', function () {
 
-    // ── 1. Sidebar Navigation ────────────────────────────────
-    // Ambil semua elemen dengan class .sidebar-item
+    // ── 1. Sidebar Navigation (AJAX Loader) ──────────────────────────
     const sidebarItems = document.querySelectorAll('.sidebar-item');
 
     sidebarItems.forEach(item => {
         item.addEventListener('click', function (event) {
-            // Cegah link berpindah halaman secara normal
             event.preventDefault();
 
             const url = this.getAttribute('data-url');
-
-            // Kalau tidak ada URL atau URL adalah '#', abaikan
             if (!url || url === '#') return;
 
             const mainContent = document.getElementById('main-content');
-
-            // Tampilkan loading sementara konten di-fetch
             mainContent.innerHTML = '<p class="p-6">Loading...</p>';
 
             fetch(url, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    return response.text();
-                })
-                .then(data => {
-                    // Masukkan konten hasil fetch ke #main-content
-                    mainContent.innerHTML = data;
-
-                    console.log('Konten berhasil dimuat dari:', url);
-                    // Add alert for debugging
-                    console.log('Ada form?', document.querySelector('#main-content form'));
-                    console.log('innerHTML length:', mainContent.innerHTML.length);
-
-                    // Add this — see the first 500 characters of the received HTML
-                    console.log('HTML preview:', data.substring(0, 500))
-
-                    setTimeout(() => {
-                        // Re-init semua listener setelah konten baru masuk ke DOM
-                        initOperatorDropdown();
-                        initAosForm();
-                    }, 5000);
-                })
-                .catch(error => {
-                    console.error('Error fetching content:', error);
-                    mainContent.innerHTML = '<p class="p-6 text-red-500">Error loading content. Please try again.</p>';
-                });
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.text();
+            })
+            .then(data => {
+                mainContent.innerHTML = data;
+                console.log('Konten berhasil dimuat:', url);
+                
+                // Re-init semua fungsi setelah konten baru masuk
+                initializeAllComponents();
+            })
+            .catch(error => {
+                console.error('Error fetching content:', error);
+                mainContent.innerHTML = '<p class="p-6 text-red-500">Error loading content.</p>';
+            });
         });
     });
 
-    // ── 2. Init pertama kali saat halaman pertama kali dibuka ─
-    initOperatorDropdown();
-    initAosForm();
+    // ── 2. Init pertama kali saat halaman load ───────────────────────
+    initializeAllComponents();
 });
 
-
-// initAosForm
-// Fungsi ini dipanggil setiap kali konten baru di-load ke
-// #main-content, agar form submit di-intercept oleh AJAX
-// dan tidak menyebabkan full page redirect.
-function initAosForm() {
-    const form = document.querySelector('#main-content form');
-
-    // Kalau tidak ada form di #main-content, keluar
-    if (!form) {
-        console.warn('initAosForm: tidak ada form di #main-content');
-        return;
+/**
+ * Fungsi pembungkus untuk menjalankan semua init
+ * agar tidak perlu dipanggil satu-satu berkali-kali
+ */
+function initializeAllComponents() {
+    if (document.getElementById('form-aos')) {
+        initOperatorDropdown();
+        initAosForm();
+        syncPdfForm();
     }
-
-    console.log('initAosForm: form ditemukan, action =', form.action);
-
-    // Cek apakah form sudah di-bind sebelumnya
-    // Ini mencegah event listener menumpuk (double-bind)
-    if (form.dataset.bound === 'true') {
-        console.log('initAosForm: form sudah di-bind, skip');
-        return;
-    }
-
-    // Tandai form sudah di-bind
-    form.dataset.bound = 'true';
-
-    // Pasang listener submit
-    form.addEventListener('submit', handleAosSubmit);
-
-    console.log('initAosForm: listener submit berhasil dipasang');
 }
 
+// ── initAosForm ──────────────────────────────────────────────────────
+function initAosForm() {
+    const form = document.getElementById('form-aos');
+    if (!form || form.dataset.bound === 'true') return;
 
-// handleAosSubmit
-// Handler yang menangani submit form secara AJAX.
-// e.preventDefault() mencegah halaman berpindah/reload.
+    form.dataset.bound = 'true';
+    form.addEventListener('submit', handleAosSubmit);
+    console.log('initAosForm: listener submit dipasang');
+}
+
+// ── handleAosSubmit ──────────────────────────────────────────────────
 function handleAosSubmit(e) {
-    // Cegah form submit secara normal (yang menyebabkan pindah halaman)
     e.preventDefault();
     e.stopPropagation();
 
-    console.log('handleAosSubmit: form submit di-intercept');
-
     const mainContent = document.getElementById('main-content');
     const formData = new FormData(this);
-
-    // Tampilkan loading
     const submitBtn = this.querySelector('[type="submit"]');
+
     if (submitBtn) submitBtn.disabled = true;
 
     fetch(this.action, {
         method: 'POST',
         headers: {
-            // Memberitahu Laravel bahwa ini adalah request AJAX
             'X-Requested-With': 'XMLHttpRequest',
-            // CSRF Token wajib untuk POST di Laravel
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
         },
         body: formData
     })
-        .then(response => {
-            if (!response.ok) throw new Error('Response tidak ok: ' + response.status);
-            return response.text();
-        })
-        .then(data => {
-            console.log('handleAosSubmit: response diterima, update konten');
-
-            // Ganti isi #main-content dengan response dari server
-            mainContent.innerHTML = data;
-
-            // Re-init listener karena DOM sudah diganti
-            initOperatorDropdown();
-            initAosForm();
-        })
-        .catch(error => {
-            console.error('handleAosSubmit: error =', error);
-            mainContent.innerHTML = '<p class="p-6 text-red-500">Gagal memuat data. Silakan coba lagi.</p>';
-        })
-        .finally(() => {
-            // Re-enable tombol submit jika masih ada
-            if (submitBtn) submitBtn.disabled = false;
-        });
+    .then(response => {
+        if (!response.ok) throw new Error('Response tidak ok');
+        return response.text();
+    })
+    .then(data => {
+        mainContent.innerHTML = data;
+        // Re-init setelah tabel hasil muncul
+        initializeAllComponents();
+    })
+    .catch(error => {
+        console.error('handleAosSubmit error:', error);
+        alert('Gagal memuat data.');
+    })
+    .finally(() => {
+        if (submitBtn) submitBtn.disabled = false;
+    });
 }
 
-
-// initOperatorDropdown
-// Fungsi ini di-init ulang setiap kali konten baru masuk,
-// agar dropdown ACType otomatis ter-filter berdasarkan Operator.
+// ── initOperatorDropdown ─────────────────────────────────────────────
 function initOperatorDropdown() {
     const operatorDropdown = document.getElementById('operator-dropdown');
+    if (!operatorDropdown || operatorDropdown.dataset.bound === 'true') return;
 
-    // Kalau dropdown tidak ada di halaman ini, keluar
-    if (!operatorDropdown) return;
-
-    // Cegah double-bind pada dropdown
-    if (operatorDropdown.dataset.bound === 'true') return;
     operatorDropdown.dataset.bound = 'true';
-
     operatorDropdown.addEventListener('change', function () {
         const operator = this.value;
         const aircraftTypeDropdown = document.getElementById('aircraft-type-dropdown');
 
-        // Reset dropdown ACType
+        if (!aircraftTypeDropdown) return;
         aircraftTypeDropdown.innerHTML = '<option value="">Select Aircraft Type</option>';
-
+        
         if (!operator) return;
 
-        console.log('Operator dipilih:', operator);
-
         fetch(`/get-aircraft-types?operator=${operator}`)
-            .then(response => {
-                if (!response.ok) throw new Error('Network response was not ok');
-                return response.json();
-            })
+            .then(res => res.json())
             .then(data => {
-                console.log('Aircraft types diterima:', data);
                 data.forEach(type => {
                     const option = document.createElement('option');
                     option.value = type.ACType;
@@ -182,6 +122,51 @@ function initOperatorDropdown() {
                     aircraftTypeDropdown.appendChild(option);
                 });
             })
-            .catch(error => console.error('Error fetching aircraft types:', error));
+            .catch(err => console.error('Error fetch aircraft:', err));
     });
+}
+
+// ── syncPdfForm ──────────────────────────────────────────────────────
+function syncPdfForm() {
+    const formAos = document.getElementById('form-aos');
+    const formPdf = document.getElementById('form-pdf');
+
+    if (!formAos || !formPdf) return;
+
+    const inputs = {
+        aos: {
+            period: formAos.querySelector('select[name="period"]'),
+            operator: formAos.querySelector('select[name="operator"]'),
+            aircraft: formAos.querySelector('select[name="aircraft_type"]')
+        },
+        pdf: {
+            period: formPdf.querySelector('input[name="period"]'),
+            operator: formPdf.querySelector('input[name="operator"]'),
+            aircraft: formPdf.querySelector('input[name="aircraft_type"]')
+        }
+    };
+
+    function updatePdfValues() {
+        if (inputs.aos.period && inputs.pdf.period) inputs.pdf.period.value = inputs.aos.period.value;
+        if (inputs.aos.operator && inputs.pdf.operator) inputs.pdf.operator.value = inputs.aos.operator.value;
+        if (inputs.aos.aircraft && inputs.pdf.aircraft) inputs.pdf.aircraft.value = inputs.aos.aircraft.value;
+        console.log('PDF Inputs synced');
+    }
+
+    // Bind event ke AOS select
+    Object.values(inputs.aos).forEach(el => {
+        if (el) el.addEventListener('change', updatePdfValues);
+    });
+
+    // Validasi saat PDF disubmit
+    if (formPdf.dataset.bound !== 'true') {
+        formPdf.dataset.bound = 'true';
+        formPdf.addEventListener('submit', function (e) {
+            updatePdfValues(); // Sync terakhir sebelum jalan
+            if (!inputs.pdf.period.value || !inputs.pdf.operator.value) {
+                e.preventDefault();
+                alert('Pilih Periode dan Operator terlebih dahulu!');
+            }
+        });
+    }
 }

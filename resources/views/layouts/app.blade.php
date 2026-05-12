@@ -23,7 +23,6 @@
         integrity="sha512-S...HASH..." crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-
     <!-- Vite -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -79,8 +78,9 @@
                 });
             });
         </script> --}}
-
     </div>
+
+    <script src="{{ asset('js/report.js') }}"></script>
 </body>
 {{-- <script>
     document.addEventListener('DOMContentLoaded', function() {

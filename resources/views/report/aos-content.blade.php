@@ -1,4 +1,3 @@
-<!--Views aos-content.blade.php-->
 {{-- @extends('layouts.aps') --}}
 
 
@@ -18,13 +17,21 @@
 
 <body> --}}
 
-
+{{-- <x-app-layout> --}}
 
 {{-- Filter Form --}}
 <div class="py-3 h-full min-h-screen" style="background-color: #bdd8f4;">
     <div class="px-3">
         <p class="fw-bold fs-1 text-center">Aircraft Operations Summary</p>
-        <form action="{{ route('report.aos.store') }}" method="POST">
+
+        <form id="form-pdf" action="{{ route('report.aos.pdf') }}" method="GET" target="_blank">
+            <input type="hidden" name="period" value="{{ request('period') }}">
+            <input type="hidden" name="operator" value="{{ request('operator') }}">
+            <input type="hidden" name="aircraft_type" value="{{ request('aircraft_type') }}">
+        </form>
+
+
+        <form id="form-aos" action="{{ route('report.aos.store') }}" method="POST">
             @csrf
             <div class="d-flex flex-column gap-3">
 
@@ -68,14 +75,15 @@
                         style="background-color: #707783; width: 120px; font-size: 12px;">
                         Display Report
                     </button>
-                    <button type="submit" name="export_pdf"
+
+                    <button type="submit" form="form-pdf"
                         class="btn btn-outline-danger d-flex align-items-center gap-1 px-2 py-1"
                         style="width: 55px; height: 31px; font-size: 12px;">
                         <i class="bi bi-file-pdf"></i>
                         <span class="small fw-bold">PDF</span>
                     </button>
-                    <button type="submit" name="export_excel"
-                        class="btn btn-outline-success d-flex align-items-center gap-1 px-2 py-1"
+
+                    <button type="submit" class="btn btn-outline-success d-flex align-items-center gap-1 px-2 py-1"
                         style="width: 60px; height: 31px; font-size: 12px;">
                         <i class="fas fa-file-excel"></i>
                         <span class="small fw-bold">EXCEL</span>
@@ -89,7 +97,7 @@
                     @include('report.aos-table')
                 @endif
 
-                
+
 
 
 
@@ -98,7 +106,7 @@
     </div>
 </div>
 
-
+{{-- </x-app-layout> --}}
 {{-- </body> --}}
 
 

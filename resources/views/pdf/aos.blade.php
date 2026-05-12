@@ -42,7 +42,7 @@
                 </tr>   
                 <tr>
                     {{-- <th></th> --}}
-                    <th colspan="14">{{ $year-1 }}-{{ $year }}</th>
+                    <th colspan="14">{{ ($selectedYear - 1) . '-' . $selectedYear }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -241,7 +241,7 @@
                     <td>Average Duration</td>
                     @for ($i = 11; $i >= 0; $i--)
                             @php
-                                $averageDuration = $reportData[\Carbon\Carbon::parse($period)->subMonth($i)->format('Y-m')]['averageDuration']
+                                $averageDuration = $reportData[\Carbon\Carbon::parse($period)->subMonth($i)->format('Y-m')]['averageDuration'];
                             @endphp
                             <td class="style1">{{ $averageDuration }}</td>
                         @endfor
