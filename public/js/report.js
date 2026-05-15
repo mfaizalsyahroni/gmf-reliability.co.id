@@ -47,6 +47,7 @@ function initializeAllComponents() {
         initOperatorDropdown();
         initAosForm();
         syncPdfForm();
+        syncExcelForm();
     }
 }
 
@@ -166,6 +167,52 @@ function syncPdfForm() {
             if (!inputs.pdf.period.value || !inputs.pdf.operator.value) {
                 e.preventDefault();
                 alert('Pilih Periode dan Operator terlebih dahulu!');
+            }
+        });
+    }
+}
+
+
+// ── syncExcelForm ────────────────────────────────────────────────────
+function syncExcelForm() {
+    const formAos   = document.getElementById('form-aos');
+    const formExcel = document.getElementById('form-excel');
+
+    if (!formAos || !formExcel) return;
+
+    const inputs = {
+        aos: {
+            period:   formAos.querySelector('select[name="period"]'),
+            operator: formAos.querySelector('select[name="operator"]'),
+            aircraft: formAos.querySelector('select[name="aircraft_type"]')
+        },
+        excel: {
+            period:   formExcel.querySelector('input[name="period"]'),
+            operator: formExcel.querySelector('input[name="operator"]'),
+            aircraft: formExcel.querySelector('input[name="aircraft_type"]')
+        }
+    };
+
+    function updateExcelValues() {
+        if (inputs.aos.period   && inputs.excel.period)   inputs.excel.period.value   = inputs.aos.period.value;
+        if (inputs.aos.operator && inputs.excel.operator) inputs.excel.operator.value = inputs.aos.operator.value;
+        if (inputs.aos.aircraft && inputs.excel.aircraft) inputs.excel.aircraft.value = inputs.aos.aircraft.value;
+        console.log('Excel inputs synced');
+    }
+
+    // Sync setiap kali AOS select berubah
+    Object.values(inputs.aos).forEach(el => {
+        if (el) el.addEventListener('change', updateExcelValues);
+    });
+
+    // Validasi + sync terakhir saat Excel disubmit
+    if (formExcel.dataset.bound !== 'true') {
+        formExcel.dataset.bound = 'true';
+        formExcel.addEventListener('submit', function (e) {
+            updateExcelValues();
+            if (!inputs.excel.period.value || !inputs.excel.operator.value || !inputs.excel.aircraft.value) {
+                e.preventDefault();
+                alert('Pilih Periode, Operator, dan Aircraft Type terlebih dahulu!');
             }
         });
     }

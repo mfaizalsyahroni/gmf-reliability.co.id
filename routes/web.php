@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\PDFController;
-use App\Http\Controllers\ExcelAosController;
+use App\Http\Controllers\ExcelController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Maatwebsite\Excel\Facades\Excel;
@@ -37,9 +37,11 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', [function () {
-    return view('dashboard');
-}])->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [
+    function () {
+        return view('dashboard');
+    }
+])->middleware(['auth', 'verified'])->name('dashboard');
 
 
 
@@ -97,18 +99,17 @@ Route::get('/report/aos', [AOSController::class, 'aosIndex']) // Aircraft Operat
 
 Route::post('/report/aos', [AOSController::class, 'aosStore']) // Aircraft Operation Summary - Display Datas
     ->name('report.aos.store');
-    //btn display report
-    
-    
-    Route::post('/report/aos/export/excel', [ExcelAosController::class, 'exportExcel'])
-    ->name('report.aos.export.excel')
-    ->middleware(['auth', 'verified']);
-    //btn excel
-    
-    
-    Route::get('/get-aos/generate.pdf', [PDFController::class, 'aosPdf'])
-        ->name('report.aos.pdf');
-        //btn pdf 
+//btn display report
+
+
+Route::post('/report/aos/excel', [ExcelController::class, 'exportExcel'])
+    ->name('report.aos.excel');
+//btn excel
+
+
+Route::get('/get-aos/generate.pdf', [PDFController::class, 'aosPdf'])
+    ->name('report.aos.pdf');
+//btn pdf 
 
 
 // Route::get('/export-users', function () {

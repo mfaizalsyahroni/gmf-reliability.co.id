@@ -12,7 +12,12 @@
     </style>
 
 <div class="table-responsive">
-    <p class="text-center">Data Aircraft Operation Summary  {{ $operator }}  {{ $aircraftType }}  {{ $month }}-{{ $year }}</p>
+    <p class="text-center">
+        Data Aircraft Operation Summary 
+    {{ $operator }}    
+    {{ $aircraftType}}
+    {{ $month }}-{{ $year }}
+    </p>
 
     <div class="flow-root">
         <div class="aos-table">

@@ -81,6 +81,7 @@ class AOSController extends Controller
         $aircraftType = $request->aircraft_type;
         $period = $request->period;
         $operator = $request->operator;
+    
 
         $reportData = [];
 
@@ -444,11 +445,9 @@ class AOSController extends Controller
         return view('report.aos-content', compact(
 
             'reportData',
-
             'period',
             'operator',
             'aircraftType',
-
             'month',
             'year',
 
@@ -466,9 +465,7 @@ class AOSController extends Controller
     }
 
 
-    // ─────────────────────────────────────────────
-// GET AOS REPORT DATA
-// ─────────────────────────────────────────────
+
     // ─── EXPORT PDF ───
     public function getAosReportData(Request $request)
     {

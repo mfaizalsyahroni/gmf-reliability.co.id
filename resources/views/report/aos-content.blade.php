@@ -30,6 +30,13 @@
             <input type="hidden" name="aircraft_type" value="{{ request('aircraft_type') }}">
         </form>
 
+        <form id="form-excel" action="{{ route('report.aos.excel') }}" method="POST" target="_blank">
+            @csrf
+            <input type="hidden" name="period" value="{{ request('period') }}">
+            <input type="hidden" name="operator" value="{{ request('operator') }}">
+            <input type="hidden" name="aircraft_type" value="{{ request('aircraft_type') }}">
+        </form>
+
 
         <form id="form-aos" action="{{ route('report.aos.store') }}" method="POST">
             @csrf
@@ -54,8 +61,8 @@
                         <select id="operator-dropdown" name="operator" class="form-select shadow-sm"
                             style="width: 130px; font-size: 12px;">
                             <option value="">Operator Type</option>
-                            @foreach ($operators as $operator)
-                                <option value="{{ $operator->Operator }}">{{ $operator->Operator }}</option>
+                            @foreach ($operators as $type)
+                                <option value="{{ $type->Operator }}">{{ $type->Operator }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -83,7 +90,8 @@
                         <span class="small fw-bold">PDF</span>
                     </button>
 
-                    <button type="submit" class="btn btn-outline-success d-flex align-items-center gap-1 px-2 py-1"
+                    <button type="submit" form="form-excel"
+                        class="btn btn-outline-success d-flex align-items-center gap-1 px-2 py-1"
                         style="width: 60px; height: 31px; font-size: 12px;">
                         <i class="fas fa-file-excel"></i>
                         <span class="small fw-bold">EXCEL</span>
