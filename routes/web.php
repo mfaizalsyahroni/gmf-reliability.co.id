@@ -37,11 +37,9 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', [
-    function () {
-        return view('dashboard');
-    }
-])->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [function () {
+    return view('dashboard');
+}])->middleware(['auth', 'verified'])->name('dashboard');
 
 
 
@@ -99,17 +97,17 @@ Route::get('/report/aos', [AOSController::class, 'aosIndex']) // Aircraft Operat
 
 Route::post('/report/aos', [AOSController::class, 'aosStore']) // Aircraft Operation Summary - Display Datas
     ->name('report.aos.store');
-//btn display report
-
-
-Route::post('/report/aos/excel', [ExcelController::class, 'exportExcel'])
+    //btn display report
+    
+    
+    Route::post('/report/aos/excel', [ExcelController::class, 'aosExcel'])
     ->name('report.aos.excel');
-//btn excel
-
-
-Route::get('/get-aos/generate.pdf', [PDFController::class, 'aosPdf'])
-    ->name('report.aos.pdf');
-//btn pdf 
+    //btn excel
+    
+    
+    Route::get('/get-aos/generate.pdf', [PDFController::class, 'aosPdf'])
+        ->name('report.aos.pdf');
+        //btn pdf 
 
 
 // Route::get('/export-users', function () {
