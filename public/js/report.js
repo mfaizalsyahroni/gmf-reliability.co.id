@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
 
-    // ── 1. Sidebar Navigation (AJAX Loader) ──────────────────────────
+    // 1. Sidebar Navigation (AJAX Loader) 
     const sidebarItems = document.querySelectorAll('.sidebar-item');
 
     sidebarItems.forEach(item => {
@@ -34,14 +34,11 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // ── 2. Init pertama kali saat halaman load ───────────────────────
-    initializeAllComponents();
 });
 
-/**
- * Fungsi pembungkus untuk menjalankan semua init
- * agar tidak perlu dipanggil satu-satu berkali-kali
- */
+// Fungsi pembungkus untuk menjalankan semua init 
+// agar tidak perlu dipanggil satu-satu berkali-kali
+
 function initializeAllComponents() {
     if (document.getElementById('form-aos')) {
         initOperatorDropdown();
@@ -51,7 +48,7 @@ function initializeAllComponents() {
     }
 }
 
-// ── initAosForm ──────────────────────────────────────────────────────
+//initAosForm
 function initAosForm() {
     const form = document.getElementById('form-aos');
     if (!form || form.dataset.bound === 'true') return;
@@ -61,7 +58,7 @@ function initAosForm() {
     console.log('initAosForm: listener submit dipasang');
 }
 
-// ── handleAosSubmit ──────────────────────────────────────────────────
+//handleAosSubmit 
 function handleAosSubmit(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -98,7 +95,7 @@ function handleAosSubmit(e) {
     });
 }
 
-// ── initOperatorDropdown ─────────────────────────────────────────────
+//initOperatorDropdown 
 function initOperatorDropdown() {
     const operatorDropdown = document.getElementById('operator-dropdown');
     if (!operatorDropdown || operatorDropdown.dataset.bound === 'true') return;
@@ -127,7 +124,7 @@ function initOperatorDropdown() {
     });
 }
 
-// ── syncPdfForm ──────────────────────────────────────────────────────
+// syncPdfForm
 function syncPdfForm() {
     const formAos = document.getElementById('form-aos');
     const formPdf = document.getElementById('form-pdf');
@@ -173,7 +170,7 @@ function syncPdfForm() {
 }
 
 
-// ── syncExcelForm ────────────────────────────────────────────────────
+// syncExcelForm
 function syncExcelForm() {
     const formAos   = document.getElementById('form-aos');
     const formExcel = document.getElementById('form-excel');

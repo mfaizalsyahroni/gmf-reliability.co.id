@@ -1,25 +1,3 @@
-{{-- @extends('layouts.aps') --}}
-
-
-{{-- @section('content') --}}
-{{-- <!DOCTYPE html>
-<html lang="en"> --}}
-
-{{-- <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>
-        <h1 class="text-3xl font-bold mb-8 text-center">Aircraft Operation Summary</h1>
-    </title>
-</head>
-
-
-<body> --}}
-
-{{-- <x-app-layout> --}}
-
-{{-- Filter Form --}}
 <div class="py-3 h-full min-h-screen" style="background-color: #bdd8f4;">
     <div class="px-3">
         <p class="fw-bold fs-1 text-center">Aircraft Operations Summary</p>
@@ -40,13 +18,16 @@
 
         <form id="form-aos" action="{{ route('report.aos.store') }}" method="POST">
             @csrf
+            {{--  <input type="hidden" name="_token" value="abc123xyz...token_unique..."> --}}
             <div class="d-flex flex-column gap-3">
 
                 <div class="d-flex align-items-center gap-2">
                     <div class="d-flex align-items-center gap-1">
                         <label class="fw-bold text-dark text-nowrap small mb-0">Periode:</label>
                         <select name="period" class="form-select shadow-sm" style="font-size: 12px;">
-                            <option value="">2024-09</option>
+                            <option value="">
+                                2024-09
+                            </option>
                             @foreach ($periods as $p)
                                 <option value="{{ $p['original'] }}"
                                     {{ isset($period) && $period == $p['original'] ? 'selected' : '' }}>

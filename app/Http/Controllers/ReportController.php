@@ -734,10 +734,10 @@ class ReportController extends Controller
         });
 
         if ($request->ajax()) {
-            return view('report.pilot-content', compact('aircraftTypes', 'periods', 'operators'));
+            return view('report.prtd-content', compact('aircraftTypes', 'periods', 'operators'));
         }
 
-        return view('report.pilot-content', compact('aircraftTypes', 'periods', 'operators'));
+        return view('report.prtd-content', compact('aircraftTypes', 'periods', 'operators'));
     }
 
     public function pilotStore(Request $request)

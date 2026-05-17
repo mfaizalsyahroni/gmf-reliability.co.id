@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AOSController;
+use App\Http\Controllers\PRTDController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
@@ -92,10 +93,10 @@ Route::get('/report', function () {
 
 Route::get('/get-aircraft-types', [AOSController::class, 'getAircraftTypes'])->name('get.aircraft.types');
 
-Route::get('/report/aos', [AOSController::class, 'aosIndex']) // Aircraft Operation Summary - Button Filter
-    ->name('report.aos.index');
+Route::get('/report/aos', [AOSController::class, 'aosIndex']) 
+    ->name('report.aos');
 
-Route::post('/report/aos', [AOSController::class, 'aosStore']) // Aircraft Operation Summary - Display Datas
+Route::post('/report/aos', [AOSController::class, 'aosStore']) 
     ->name('report.aos.store');
     //btn display report
     
@@ -110,15 +111,12 @@ Route::post('/report/aos', [AOSController::class, 'aosStore']) // Aircraft Opera
         //btn pdf 
 
 
-// Route::get('/export-users', function () {
-//     return Excel::download(new UsersExport, 'users.xlsx');
-// });
 
-Route::get('/report/pilot', [ReportController::class, 'pilotIndex']) //Pilot Report And Technical Delay - button filter
-    ->name('report.pilot.index')->middleware(['auth', 'verified']);
+Route::get('/report/pilot', [ReportController::class, 'pilotIndex'])
+    ->name('report.prtd.index')->middleware(['auth', 'verified']);
 
-Route::post('/report/pilot', [ReportController::class, 'pilotStore']) //Pilot Report And Technical Delay - button filter
-    ->name('report.pilot.store')->middleware(['auth', 'verified']);
+Route::post('/report/pilot', [PRTDController::class, 'prtdStore'])
+    ->name('report.prtd.store')->middleware(['auth', 'verified']);
 
 Route::get('/report/cumulative', [ReportController::class, 'cumulativeContent'])
     ->name('report.cumulative')

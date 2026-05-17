@@ -11,9 +11,13 @@ use Carbon\Carbon;
 
 class AOSController extends Controller
 {
-    // ─────────────────────────────────────────────
+
+    public function create()
+    {
+        return view('report.aos-content');
+    }
+
     // HELPER: Decimal → HH:MM
-    // ─────────────────────────────────────────────
     public function convertDecimalToHoursMinutes($decimalHours): string
     {
         $hours = floor($decimalHours);
@@ -21,10 +25,8 @@ class AOSController extends Controller
         return sprintf('%d : %02d', $hours, $minutes);
     }
 
-    // ─────────────────────────────────────────────
     // PRIVATE CORE: 5 bulk query + kalkulasi loop
     // Dipakai oleh aosStore, getAosReportData, getAosRawData
-    // ─────────────────────────────────────────────
     private function buildAosData(string $aircraftType, string $operator, string $period): array
     {
         $date = Carbon::parse($period);
@@ -421,9 +423,7 @@ class AOSController extends Controller
         return compact('reportData', 'rawMonthly', 'avgs', 'last12', 'acInFleet', 'rows', 'months');
     }
 
-    // ─────────────────────────────────────────────
     // HELPER PRIVATE: Dropdown options (operator, ACType, period)
-    // ─────────────────────────────────────────────
     private function getDropdownOptions(): array
     {
         $operators = TblMasterac::select('Operator')->distinct()->get();
@@ -439,20 +439,17 @@ class AOSController extends Controller
                 'original' => $item->MonthEval,
             ]);
 
+
         return compact('operators', 'aircraftTypes', 'periods');
     }
 
-    // ─────────────────────────────────────────────
     // INDEX — tampilkan form kosong dengan dropdown
-    // ─────────────────────────────────────────────
     public function aosIndex(Request $request)
     {
         return view('report.aos-content', $this->getDropdownOptions());
     }
 
-    // ─────────────────────────────────────────────
     // AJAX — ambil ACType berdasarkan operator
-    // ─────────────────────────────────────────────
     public function getAircraftTypes(Request $request)
     {
         $aircraftTypes = TblMasterac::where('Operator', $request->operator)
@@ -463,9 +460,7 @@ class AOSController extends Controller
         return response()->json($aircraftTypes);
     }
 
-    // ─────────────────────────────────────────────
     // STORE — proses form, tampilkan tabel di view
-    // ─────────────────────────────────────────────
     public function aosStore(Request $request)
     {
         $request->validate([
@@ -500,9 +495,7 @@ class AOSController extends Controller
         ));
     }
 
-    // ─────────────────────────────────────────────
     // EXPORT PDF — kembalikan array data ke PDF controller
-    // ─────────────────────────────────────────────
     public function getAosReportData(Request $request): array
     {
         $request->validate([
@@ -527,9 +520,7 @@ class AOSController extends Controller
         ]);
     }
 
-    // ─────────────────────────────────────────────
     // EXPORT EXCEL — kembalikan raw decimal array ke Excel controller
-    // ─────────────────────────────────────────────
     public function getAosRawData(Request $request): array
     {
         $request->validate([
