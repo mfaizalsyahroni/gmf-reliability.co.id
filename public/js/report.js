@@ -1,216 +1,399 @@
-document.addEventListener('DOMContentLoaded', function () {
+// 
+// GLOBAL REPORT SYSTEM
+// 
+// Fitur:
+// 1. Sidebar AJAX Navigation
+// 2. AJAX Form Submit
+// 3. Operator -> Aircraft Dropdown
+// 4. PDF & Excel Form Sync
+// 5. Tanpa re-init manual
+// 6. Tanpa dataset.bound
+// 7. Support dynamic AJAX content
+// 
 
-    // 1. Sidebar Navigation (AJAX Loader) 
-    const sidebarItems = document.querySelectorAll('.sidebar-item');
 
-    sidebarItems.forEach(item => {
-        item.addEventListener('click', function (event) {
-            event.preventDefault();
 
-            const url = this.getAttribute('data-url');
-            if (!url || url === '#') return;
+// 
+// DOM READY
+// 
 
-            const mainContent = document.getElementById('main-content');
-            mainContent.innerHTML = '<p class="p-6">Loading...</p>';
+document.addEventListener('DOMContentLoaded', () => {
 
-            fetch(url, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            })
-            .then(response => {
-                if (!response.ok) throw new Error('Network response was not ok');
-                return response.text();
-            })
-            .then(data => {
-                mainContent.innerHTML = data;
-                console.log('Konten berhasil dimuat:', url);
-                
-                // Re-init semua fungsi setelah konten baru masuk
-                initializeAllComponents();
-            })
-            .catch(error => {
-                console.error('Error fetching content:', error);
-                mainContent.innerHTML = '<p class="p-6 text-red-500">Error loading content.</p>';
-            });
-        });
-    });
+    console.log('Report JS Loaded');
+
+    // Inisialisasi sidebar AJAX
+    initSidebarNavigation();
 
 });
 
-// Fungsi pembungkus untuk menjalankan semua init 
-// agar tidak perlu dipanggil satu-satu berkali-kali
 
-function initializeAllComponents() {
-    if (document.getElementById('form-aos')) {
-        initOperatorDropdown();
-        initAosForm();
-        syncPdfForm();
-        syncExcelForm();
-    }
+
+// 
+// SIDEBAR AJAX NAVIGATION
+// 
+// Menangani klik sidebar secara global
+// Menggunakan Event Delegation
+// 
+
+function initSidebarNavigation() {
+
+    document.addEventListener('click', async function (e) {
+
+        // Cari element terdekat dengan class .sidebar-item
+        const sidebarItem = e.target.closest('.sidebar-item');
+
+        // Kalau bukan sidebar item -> hentikan
+        if (!sidebarItem) return;
+
+        // Stop reload halaman
+        e.preventDefault();
+
+        // Ambil URL dari data-url
+        const url = sidebarItem.dataset.url;
+
+        // Validasi URL
+        if (!url || url === '#') return;
+
+        console.log('Load URL:', url);
+
+        // Load halaman via AJAX
+        await loadPage(url);
+
+    });
+
 }
 
-//initAosForm
-function initAosForm() {
-    const form = document.getElementById('form-aos');
-    if (!form || form.dataset.bound === 'true') return;
 
-    form.dataset.bound = 'true';
-    form.addEventListener('submit', handleAosSubmit);
-    console.log('initAosForm: listener submit dipasang');
-}
 
-//handleAosSubmit 
-function handleAosSubmit(e) {
-    e.preventDefault();
-    e.stopPropagation();
+// 
+// LOAD PAGE VIA AJAX
+// 
+// Memuat halaman report ke #main-content
+// 
 
+async function loadPage(url) {
+
+    // Ambil container utama
     const mainContent = document.getElementById('main-content');
-    const formData = new FormData(this);
-    const submitBtn = this.querySelector('[type="submit"]');
 
-    if (submitBtn) submitBtn.disabled = true;
+    // Loading state
+    mainContent.innerHTML = `
+        <div class="p-6 text-center">
+            Loading...
+        </div>
+    `;
 
-    fetch(this.action, {
-        method: 'POST',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: formData
-    })
-    .then(response => {
-        if (!response.ok) throw new Error('Response tidak ok');
-        return response.text();
-    })
-    .then(data => {
-        mainContent.innerHTML = data;
-        // Re-init setelah tabel hasil muncul
-        initializeAllComponents();
-    })
-    .catch(error => {
-        console.error('handleAosSubmit error:', error);
-        alert('Gagal memuat data.');
-    })
-    .finally(() => {
-        if (submitBtn) submitBtn.disabled = false;
-    });
+    try {
+
+        // Fetch halaman
+        const response = await fetch(url, {
+
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+
+        });
+
+        // Kalau response gagal
+        if (!response.ok) {
+            throw new Error('Gagal memuat halaman');
+        }
+
+        // Ambil HTML
+        const html = await response.text();
+
+        // Inject HTML ke halaman
+        mainContent.innerHTML = html;
+
+        console.log('Halaman berhasil dimuat');
+
+    } catch (error) {
+
+        console.error('Load Page Error:', error);
+
+        mainContent.innerHTML = `
+            <div class="p-6 text-red-500">
+                Error loading content
+            </div>
+        `;
+
+    }
+
 }
 
-//initOperatorDropdown 
-function initOperatorDropdown() {
-    const operatorDropdown = document.getElementById('operator-dropdown');
-    if (!operatorDropdown || operatorDropdown.dataset.bound === 'true') return;
 
-    operatorDropdown.dataset.bound = 'true';
-    operatorDropdown.addEventListener('change', function () {
-        const operator = this.value;
-        const aircraftTypeDropdown = document.getElementById('aircraft-type-dropdown');
 
-        if (!aircraftTypeDropdown) return;
-        aircraftTypeDropdown.innerHTML = '<option value="">Select Aircraft Type</option>';
-        
-        if (!operator) return;
+// 
+// GLOBAL AJAX FORM SUBMIT
+// 
+// Semua form yang punya:
+// data-ajax-form
+// akan otomatis submit via AJAX
+// 
 
-        fetch(`/get-aircraft-types?operator=${operator}`)
-            .then(res => res.json())
-            .then(data => {
-                data.forEach(type => {
-                    const option = document.createElement('option');
-                    option.value = type.ACType;
-                    option.textContent = type.ACType;
-                    aircraftTypeDropdown.appendChild(option);
-                });
-            })
-            .catch(err => console.error('Error fetch aircraft:', err));
-    });
+document.addEventListener('submit', async function (e) {
+
+    // Ambil form yang submit
+    const form = e.target;
+
+    // Kalau bukan AJAX form -> hentikan
+    if (!form.matches('[data-ajax-form]')) return;
+
+    // Stop reload halaman
+    e.preventDefault();
+
+    console.log('AJAX Submit:', form.action);
+
+    // Submit AJAX
+    await submitAjaxForm(form);
+
+});
+
+
+
+// 
+// SUBMIT AJAX FORM
+// 
+// Generic reusable form submit
+// Bisa dipakai semua report
+// 
+
+async function submitAjaxForm(form) {
+
+    // Ambil main content
+    const mainContent = document.getElementById('main-content');
+
+    // Ambil tombol submit
+    const submitBtn = form.querySelector('[type="submit"]');
+
+    // Ambil semua form data
+    const formData = new FormData(form);
+
+    // Disable tombol submit
+    if (submitBtn) {
+        submitBtn.disabled = true;
+    }
+
+    try {
+
+        // Fetch submit form
+        const response = await fetch(form.action, {
+
+            method: form.method || 'POST',
+
+            headers: {
+
+                'X-Requested-With': 'XMLHttpRequest',
+
+                'X-CSRF-TOKEN': document
+                    .querySelector('meta[name="csrf-token"]')
+                    .content
+
+            },
+
+            body: formData
+
+        });
+
+        // Kalau gagal
+        if (!response.ok) {
+            throw new Error('Submit gagal');
+        }
+
+        // Ambil HTML hasil response
+        const html = await response.text();
+
+        // Render ke halaman
+        mainContent.innerHTML = html;
+
+        console.log('Form berhasil disubmit');
+
+    } catch (error) {
+
+        console.error('Submit Error:', error);
+
+        alert('Gagal submit form');
+
+    } finally {
+
+        // Aktifkan lagi tombol submit
+        if (submitBtn) {
+            submitBtn.disabled = false;
+        }
+
+    }
+
 }
 
-// syncPdfForm
-function syncPdfForm() {
+
+
+// 
+// OPERATOR -> AIRCRAFT DROPDOWN
+// 
+// Saat operator berubah:
+// otomatis load aircraft type
+// 
+
+document.addEventListener('change', async function (e) {
+
+    // Ambil dropdown operator
+    const operatorDropdown = e.target;
+
+    // Validasi dropdown
+    if (!operatorDropdown.matches('[data-aircraft-dropdown]')) {
+        return;
+    }
+
+    // Ambil value operator
+    const operator = operatorDropdown.value;
+
+    // Ambil dropdown aircraft
+    const aircraftDropdown =
+        document.getElementById('aircraft-type-dropdown');
+
+    // Validasi dropdown aircraft
+    if (!aircraftDropdown) return;
+
+    // Reset option
+    aircraftDropdown.innerHTML = `
+        <option value="">
+            Select Aircraft Type
+        </option>
+    `;
+
+    // Kalau operator kosong
+    if (!operator) return;
+
+    console.log('Load aircraft:', operator);
+
+    try {
+
+        // Fetch aircraft type
+        const response = await fetch(
+            `/get-aircraft-types?operator=${operator}`
+        );
+
+        // Ambil JSON
+        const data = await response.json();
+
+        // Loop data aircraft
+        data.forEach(type => {
+
+            // Buat option
+            const option = document.createElement('option');
+
+            option.value = type.ACType;
+            option.textContent = type.ACType;
+
+            // Masukkan option
+            aircraftDropdown.appendChild(option);
+
+        });
+
+        console.log('Aircraft loaded');
+
+    } catch (error) {
+
+        console.error('Aircraft Error:', error);
+
+    }
+
+});
+
+
+
+// 
+// GLOBAL EXPORT FORM SYNC
+// 
+// Sync:
+// - PDF
+// - Excel
+//
+// Saat form AOS berubah
+// 
+
+document.addEventListener('change', function () {
+
+    syncExportForms();
+
+});
+
+
+
+// 
+// SYNC EXPORT FORMS
+// 
+// Mengambil value dari form utama
+// lalu sync ke:
+// - form-pdf
+// - form-excel
+// 
+
+function syncExportForms() {
+
+    // Ambil form AOS
     const formAos = document.getElementById('form-aos');
-    const formPdf = document.getElementById('form-pdf');
 
-    if (!formAos || !formPdf) return;
+    // Kalau tidak ada form AOS
+    if (!formAos) return;
 
-    const inputs = {
-        aos: {
-            period: formAos.querySelector('select[name="period"]'),
-            operator: formAos.querySelector('select[name="operator"]'),
-            aircraft: formAos.querySelector('select[name="aircraft_type"]')
-        },
-        pdf: {
-            period: formPdf.querySelector('input[name="period"]'),
-            operator: formPdf.querySelector('input[name="operator"]'),
-            aircraft: formPdf.querySelector('input[name="aircraft_type"]')
-        }
-    };
+    // Ambil semua value
+    const period =
+        formAos.querySelector('[name="period"]')?.value;
 
-    function updatePdfValues() {
-        if (inputs.aos.period && inputs.pdf.period) inputs.pdf.period.value = inputs.aos.period.value;
-        if (inputs.aos.operator && inputs.pdf.operator) inputs.pdf.operator.value = inputs.aos.operator.value;
-        if (inputs.aos.aircraft && inputs.pdf.aircraft) inputs.pdf.aircraft.value = inputs.aos.aircraft.value;
-        console.log('PDF Inputs synced');
-    }
+    const operator =
+        formAos.querySelector('[name="operator"]')?.value;
 
-    // Bind event ke AOS select
-    Object.values(inputs.aos).forEach(el => {
-        if (el) el.addEventListener('change', updatePdfValues);
-    });
+    const aircraft =
+        formAos.querySelector('[name="aircraft_type"]')?.value;
 
-    // Validasi saat PDF disubmit
-    if (formPdf.dataset.bound !== 'true') {
-        formPdf.dataset.bound = 'true';
-        formPdf.addEventListener('submit', function (e) {
-            updatePdfValues(); // Sync terakhir sebelum jalan
-            if (!inputs.pdf.period.value || !inputs.pdf.operator.value) {
-                e.preventDefault();
-                alert('Pilih Periode dan Operator terlebih dahulu!');
-            }
-        });
-    }
+    // Sync PDF
+    updateExportForm(
+        'form-pdf',
+        period,
+        operator,
+        aircraft
+    );
+
+    // Sync Excel
+    updateExportForm(
+        'form-excel',
+        period,
+        operator,
+        aircraft
+    );
+
 }
 
 
-// syncExcelForm
-function syncExcelForm() {
-    const formAos   = document.getElementById('form-aos');
-    const formExcel = document.getElementById('form-excel');
 
-    if (!formAos || !formExcel) return;
+// 
+// UPDATE EXPORT FORM
+// Helper function untuk update hidden input
 
-    const inputs = {
-        aos: {
-            period:   formAos.querySelector('select[name="period"]'),
-            operator: formAos.querySelector('select[name="operator"]'),
-            aircraft: formAos.querySelector('select[name="aircraft_type"]')
-        },
-        excel: {
-            period:   formExcel.querySelector('input[name="period"]'),
-            operator: formExcel.querySelector('input[name="operator"]'),
-            aircraft: formExcel.querySelector('input[name="aircraft_type"]')
-        }
-    };
+function updateExportForm(
+    formId,
+    period,
+    operator,
+    aircraft
+) {
 
-    function updateExcelValues() {
-        if (inputs.aos.period   && inputs.excel.period)   inputs.excel.period.value   = inputs.aos.period.value;
-        if (inputs.aos.operator && inputs.excel.operator) inputs.excel.operator.value = inputs.aos.operator.value;
-        if (inputs.aos.aircraft && inputs.excel.aircraft) inputs.excel.aircraft.value = inputs.aos.aircraft.value;
-        console.log('Excel inputs synced');
-    }
+    // Ambil form
+    const form = document.getElementById(formId);
 
-    // Sync setiap kali AOS select berubah
-    Object.values(inputs.aos).forEach(el => {
-        if (el) el.addEventListener('change', updateExcelValues);
-    });
+    // Kalau form tidak ada
+    if (!form) return;
 
-    // Validasi + sync terakhir saat Excel disubmit
-    if (formExcel.dataset.bound !== 'true') {
-        formExcel.dataset.bound = 'true';
-        formExcel.addEventListener('submit', function (e) {
-            updateExcelValues();
-            if (!inputs.excel.period.value || !inputs.excel.operator.value || !inputs.excel.aircraft.value) {
-                e.preventDefault();
-                alert('Pilih Periode, Operator, dan Aircraft Type terlebih dahulu!');
-            }
-        });
-    }
+    // Update period
+    form.querySelector('[name="period"]').value =
+        period || '';
+
+    // Update operator
+    form.querySelector('[name="operator"]').value =
+        operator || '';
+
+    // Update aircraft
+    form.querySelector('[name="aircraft_type"]').value =
+        aircraft || '';
+
 }

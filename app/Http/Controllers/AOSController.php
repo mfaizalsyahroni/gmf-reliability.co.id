@@ -234,7 +234,6 @@ class AOSController extends Controller
             'avgRevenueFlightHoursPerTakeOff' => $this->convertDecimalToHoursMinutes($totals['revenueFlightHoursPerTakeOff'] / 12),
             'avgDailyUtilizationFlyingHoursTotal' => $this->convertDecimalToHoursMinutes($totals['dailyUtilizationFlyingHoursTotal'] / 12),
             'avgRevenueDailyUtilizationFlyingHoursTotal' => $this->convertDecimalToHoursMinutes($totals['revenueDailyUtilizationFlyingHoursTotal'] / 12),
-            'avgTotalDuration' => $this->convertDecimalToHoursMinutes($totals['totalDuration'] / 12),
             'avgAverageDuration' => $totals['technicalDelayTotal'] > 0
                 ? $this->convertDecimalToHoursMinutes($totals['totalDuration'] / $totals['technicalDelayTotal'])
                 : '0 : 00',
@@ -374,7 +373,7 @@ class AOSController extends Controller
                 'label' => 'Total Duration',
                 'field' => 'totalDuration',
                 'format' => 'string',
-                'summary' => $avgs['avgTotalDuration'],
+                'summary' => $this->convertDecimalToHoursMinutes($totals['totalDuration']),
             ],
 
             [

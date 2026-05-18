@@ -2,7 +2,7 @@
             <div class="px-3">
 
                 <p class="fw-bold fs-1 text-center">Pilot Report and Technical Delay</p>
-{{-- 
+                {{-- 
                 <form id="form-prtd-pdf" action="{{ route('report.prtd.pdf') }}" method="GET" target="_blank">
                     <input type="hidden" name="period" value="{{ request('period') }}">
                     <input type="hidden" name="operator" value="{{ request('operator') }}">

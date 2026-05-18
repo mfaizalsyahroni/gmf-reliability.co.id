@@ -157,17 +157,14 @@ class PRTDController extends Controller
             $key = $m->format('Y-m');
 
             // Ambil dari collection — 0 jika bulan kosong
-            $delay = $delayData[$key] ?? null;
-            $pirep = $pirepData[$key] ?? null;
-            $rootCause = $rootCauseData[$key] ?? null;
-            $maint = $maintData[$key] ?? null;
+            $rowMetrics = $allData[$key] ?? null;
             $fhfc = $fhfcData[$key] ?? null;
 
-            $totalEvents = (int) ($delay?->total_events ?? 0);
-            $totalDelayMin = (float) ($delay?->total_delay_min ?? 0);
-            $pirepCount = (int) ($pirep?->pirep_count ?? 0);
-            $rootCauseCount = (int) ($rootCause?->root_cause_count ?? 0);
-            $maintCount = (int) ($maint?->maintenance_action_count ?? 0);
+            $totalEvents = (int) ($rowMetrics?->total_events ?? 0);
+            $totalDelayMin = (float) ($rowMetrics?->total_delay_min ?? 0);
+            $pirepCount = (int) ($rowMetrics?->pirep_count ?? 0);
+            $rootCauseCount = (int) ($rowMetrics?->root_cause_count ?? 0);
+            $maintCount = (int) ($rowMetrics?->maintenance_action_count ?? 0);
             $takeOffTotal = (float) ($fhfc?->takeOffTotal ?? 0);
 
             $totalDelayHrs = $totalDelayMin / 60;
